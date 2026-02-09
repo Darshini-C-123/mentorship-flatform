@@ -1,0 +1,36 @@
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import { Suspense } from "react"
+import "./globals.css"
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+})
+
+export const metadata: Metadata = {
+  title: "MentorHub - Peer-to-Peer Mentorship Platform",
+  description:
+    "Connect with mentors and mentees in your field. Learn and grow through meaningful mentorship relationships.",
+  generator: "v0.app",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en">
+      <body className={`font-sans ${inter.variable} antialiased bg-background text-foreground`}>
+        <Suspense fallback={null}>{children}</Suspense>
+      </body>
+    </html>
+  )
+}
