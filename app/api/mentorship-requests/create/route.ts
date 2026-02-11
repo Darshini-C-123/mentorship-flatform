@@ -32,16 +32,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if request already exists
+    // Check if requester already has a pending request
     const existingRequest = await MentorshipRequest.findOne({
-      menteeId: decoded.userId,
-      mentorId,
-      status: 'pending',
+      $or: [
+        { menteeId: decoded.userId, mentorId, status: 'pending' },
+        { mentorId: decoded.userId, menteeId: mentorId, status: 'pending' },
+      ]
     })
 
     if (existingRequest) {
       return NextResponse.json(
-        { error: 'You already have a pending request with this mentor' },
+        { error: 'You already have a pending request with this user' },
         { status: 409 }
       )
     }

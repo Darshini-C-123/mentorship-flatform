@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Upload } from 'lucide-react'
+import { Loader2, Upload, Star } from 'lucide-react'
 
 interface UserProfile {
   _id: string
@@ -24,6 +24,21 @@ interface UserProfile {
   profilePictureUrl: string
 }
 
+interface Feedback {
+  _id: string
+  rating: number
+  comment: string
+  menteeName: string
+  menteeProfilePicture: string
+  createdAt: string
+}
+
+interface MentorStats {
+  averageRating: number
+  totalFeedbacks: number
+  feedbacks: Feedback[]
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const [user, setUser] = useState<UserProfile | null>(null)
@@ -32,6 +47,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('')
   const [newSkill, setNewSkill] = useState('')
   const [newInterest, setNewInterest] = useState('')
+  const [mentorStats, setMentorStats] = useState<MentorStats | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -54,6 +70,15 @@ export default function ProfilePage() {
             skills: data.user.skills,
             interests: data.user.interests,
           })
+
+          // Fetch mentor stats if user is a mentor
+          if (data.user.role === 'Mentor' || data.user.role === 'Both') {
+            const feedbackResponse = await fetch(`/api/feedback?mentorId=${data.user._id}`)
+            if (feedbackResponse.ok) {
+              const feedbackData = await feedbackResponse.json()
+              setMentorStats(feedbackData)
+            }
+          }
         } else if (response.status === 401) {
           router.push('/login')
         }
@@ -167,6 +192,65 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-6">
+          {/* Mentor Rating Card */}
+          {(user?.role === 'Mentor' || user?.role === 'Both') && mentorStats && (
+            <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+                  Mentor Rating
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                    {mentorStats.averageRating}
+                  </span>
+                  <span className="text-muted-foreground">/ 5.0</span>
+                  <span className="text-sm text-muted-foreground ml-auto">
+                    ({mentorStats.totalFeedbacks} {mentorStats.totalFeedbacks === 1 ? 'review' : 'reviews'})
+                  </span>
+                </div>
+
+                {/* Display feedbacks */}
+                {mentorStats.feedbacks.length > 0 && (
+                  <div className="space-y-3 mt-4">
+                    <h4 className="text-sm font-semibold text-foreground">Recent Reviews</h4>
+                    {mentorStats.feedbacks.slice(0, 3).map((feedback) => (
+                      <div key={feedback._id} className="bg-background rounded-lg p-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={feedback.menteeProfilePicture}
+                            alt={feedback.menteeName}
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                          <span className="text-sm font-medium text-foreground">{feedback.menteeName}</span>
+                          <div className="flex gap-0.5 ml-auto">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-3 w-3 ${
+                                  i < feedback.rating
+                                    ? 'fill-amber-400 text-amber-400'
+                                    : 'text-muted-foreground'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {feedback.comment && (
+                          <p className="text-sm text-muted-foreground italic">{feedback.comment}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(feedback.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
           {/* Profile Picture */}
           <Card>
             <CardHeader>

@@ -37,6 +37,9 @@ export function Navigation() {
             <Link href="/browse" className="text-foreground hover:text-primary transition-colors text-sm font-medium">
               Browse
             </Link>
+            <Link href="/chat" className="text-foreground hover:text-primary transition-colors text-sm font-medium">
+              Chat
+            </Link>
             <Link href="/dashboard" className="text-foreground hover:text-primary transition-colors text-sm font-medium">
               Dashboard
             </Link>
@@ -75,6 +78,9 @@ export function Navigation() {
             </Link>
             <Link href="/browse" className="block px-4 py-2 hover:bg-secondary rounded-lg text-sm">
               Browse
+            </Link>
+            <Link href="/chat" className="block px-4 py-2 hover:bg-secondary rounded-lg text-sm">
+              Chat
             </Link>
             <Link href="/dashboard" className="block px-4 py-2 hover:bg-secondary rounded-lg text-sm">
               Dashboard
