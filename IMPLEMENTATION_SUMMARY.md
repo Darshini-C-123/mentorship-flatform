@@ -110,7 +110,7 @@
 ## 🛠️ Environment Variables Required
 
 ```
-MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/mentorship
+MONGODB_URI=YOUR_MONGODB_URI_HERE.
 JWT_SECRET=your-secret-key-change-in-production
 NODE_ENV=production (for secure cookies)
 ```
