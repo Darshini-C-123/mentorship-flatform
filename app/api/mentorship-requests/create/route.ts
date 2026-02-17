@@ -23,11 +23,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    const { mentorId, message } = await request.json()
+    const { mentorId, message, subject } = await request.json()
 
     if (!mentorId) {
       return NextResponse.json(
         { error: 'Mentor ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Prevent sending request to yourself
+    if (mentorId === decoded.userId) {
+      return NextResponse.json(
+        { error: 'You cannot send a mentorship request to yourself' },
         { status: 400 }
       )
     }
@@ -51,6 +59,7 @@ export async function POST(request: NextRequest) {
     const mentorshipRequest = new MentorshipRequest({
       menteeId: decoded.userId,
       mentorId,
+      subject: subject || '',
       message: message || '',
       status: 'pending',
     })

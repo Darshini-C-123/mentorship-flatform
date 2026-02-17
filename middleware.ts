@@ -3,7 +3,7 @@ import { verifyToken } from '@/lib/auth'
 import { cookies } from 'next/headers'
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/profile']
+const protectedRoutes = ['/dashboard', '/profile', '/chat']
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname

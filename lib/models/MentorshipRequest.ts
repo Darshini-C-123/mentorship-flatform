@@ -4,6 +4,7 @@ export interface IMentorshipRequest extends Document {
   menteeId: mongoose.Types.ObjectId
   mentorId: mongoose.Types.ObjectId
   status: 'pending' | 'accepted' | 'rejected'
+  subject: string
   message: string
   createdAt: Date
   updatedAt: Date
@@ -25,6 +26,10 @@ const MentorshipRequestSchema = new Schema(
       type: String,
       enum: ['pending', 'accepted', 'rejected'],
       default: 'pending',
+    },
+    subject: {
+      type: String,
+      default: '',
     },
     message: {
       type: String,

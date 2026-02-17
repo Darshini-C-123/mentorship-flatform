@@ -26,14 +26,39 @@ export default function BrowsePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedMentor, setSelectedMentor] = useState<MentorProfile | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/user/profile')
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}))
+          if (data?.user?._id) setCurrentUserId(data.user._id)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    fetchProfile()
+  }, [])
 
   useEffect(() => {
     // Fetch mentors from API
     const fetchMentors = async () => {
       try {
         const response = await fetch('/api/mentors')
-        const data = await response.json()
-        setMentors(data.mentors || [])
+        let data: any = null
+        try {
+          data = await response.json()
+        } catch (parseError) {
+          console.error('[v0] Failed to parse mentors response as JSON:', parseError)
+        }
+        if (data?.mentors) {
+          setMentors(data.mentors)
+        } else {
+          setMentors([])
+        }
       } catch (error) {
         console.error('[v0] Error fetching mentors:', error)
       } finally {
@@ -157,16 +182,22 @@ export default function BrowsePage() {
                     </div>
                   )}
 
-                  <Button 
-                    className="w-full gap-2"
-                    onClick={() => {
-                      setSelectedMentor(mentor)
-                      setIsModalOpen(true)
-                    }}
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Request Mentorship
-                  </Button>
+                  {currentUserId && mentor._id === currentUserId ? (
+                    <Button variant="secondary" className="w-full" disabled>
+                      This is you
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full gap-2"
+                      onClick={() => {
+                        setSelectedMentor(mentor)
+                        setIsModalOpen(true)
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Request Mentorship
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}

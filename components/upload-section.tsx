@@ -158,7 +158,13 @@ export function UploadSection() {
         throw new Error("Upload failed")
       }
 
-      const uploadResult = await uploadResponse.json()
+      let uploadResult: any = null
+      try {
+        uploadResult = await uploadResponse.json()
+      } catch (parseError) {
+        console.error("Failed to parse upload response as JSON:", parseError)
+        throw new Error("Upload failed: invalid server response")
+      }
 
       // Step 2: Preprocess text and classify clauses
       updateFileStatus(fileIndex, "preprocessing", 40, "Preprocessing extracted text...")
@@ -176,7 +182,13 @@ export function UploadSection() {
         throw new Error("Processing failed")
       }
 
-      const processResult = await processResponse.json()
+      let processResult: any = null
+      try {
+        processResult = await processResponse.json()
+      } catch (parseError) {
+        console.error("Failed to parse process-document response as JSON:", parseError)
+        throw new Error("Processing failed: invalid server response")
+      }
 
       updateFileStatus(fileIndex, "classifying", 80, "Running ML clause classification...")
 

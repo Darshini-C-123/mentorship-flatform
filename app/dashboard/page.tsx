@@ -20,6 +20,7 @@ interface MentorshipRequest {
   _id: string
   menteeId: MenteeInfo
   status: 'pending' | 'accepted' | 'rejected'
+  subject?: string
   message: string
   createdAt: string
 }
@@ -48,8 +49,13 @@ export default function DashboardPage() {
       try {
         const response = await fetch('/api/mentorship-requests')
         if (response.ok) {
-          const data = await response.json()
-          setRequests(data.requests || [])
+          let data: any = null
+          try {
+            data = await response.json()
+          } catch (parseError) {
+            console.error('[v0] Failed to parse mentorship requests response as JSON:', parseError)
+          }
+          setRequests(data?.requests || [])
         }
       } catch (error) {
         console.error('[v0] Error fetching requests:', error)
@@ -72,8 +78,12 @@ export default function DashboardPage() {
       try {
         const response = await fetch(`/api/chat?requestId=${selectedRequest._id}`)
         if (response.ok) {
-          const data = await response.json()
-          setMessages(data.messages || [])
+          try {
+            const data = await response.json()
+            setMessages(data.messages || [])
+          } catch (parseError) {
+            console.error('[v0] Failed to parse dashboard chat messages as JSON:', parseError)
+          }
         }
       } catch (error) {
         console.error('[v0] Error fetching messages:', error)
@@ -137,8 +147,12 @@ export default function DashboardPage() {
         // Fetch updated messages
         const messagesResponse = await fetch(`/api/chat?requestId=${selectedRequest._id}`)
         if (messagesResponse.ok) {
-          const data = await messagesResponse.json()
-          setMessages(data.messages || [])
+          try {
+            const data = await messagesResponse.json()
+            setMessages(data.messages || [])
+          } catch (parseError) {
+            console.error('[v0] Failed to parse updated dashboard chat messages as JSON:', parseError)
+          }
         }
       }
     } catch (error) {
@@ -203,7 +217,12 @@ export default function DashboardPage() {
                             className="w-12 h-12 rounded-full object-cover"
                           />
                           <div>
-                            <CardTitle className="text-lg">{request.menteeId.name}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {request.menteeId.name}
+                              {request.subject ? (
+                                <span className="font-normal text-muted-foreground"> · {request.subject}</span>
+                              ) : null}
+                            </CardTitle>
                             <CardDescription>{request.menteeId.email}</CardDescription>
                           </div>
                         </div>
@@ -257,7 +276,12 @@ export default function DashboardPage() {
                             className="w-12 h-12 rounded-full object-cover"
                           />
                           <div>
-                            <CardTitle className="text-lg">{request.menteeId.name}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {request.menteeId.name}
+                              {request.subject ? (
+                                <span className="font-normal text-muted-foreground"> · {request.subject}</span>
+                              ) : null}
+                            </CardTitle>
                             <CardDescription>{request.menteeId.email}</CardDescription>
                           </div>
                         </div>
@@ -300,7 +324,12 @@ export default function DashboardPage() {
                             className="w-12 h-12 rounded-full object-cover"
                           />
                           <div>
-                            <CardTitle className="text-lg">{request.menteeId.name}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {request.menteeId.name}
+                              {request.subject ? (
+                                <span className="font-normal text-muted-foreground"> · {request.subject}</span>
+                              ) : null}
+                            </CardTitle>
                             <CardDescription>{request.menteeId.email}</CardDescription>
                           </div>
                         </div>
@@ -329,6 +358,9 @@ export default function DashboardPage() {
                 />
                 <div>
                   <DialogTitle>{selectedRequest?.menteeId.name}</DialogTitle>
+                  {selectedRequest?.subject && (
+                    <p className="text-xs font-medium text-foreground">Subject: {selectedRequest.subject}</p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">{selectedRequest?.menteeId.email}</p>
                 </div>
               </div>

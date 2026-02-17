@@ -5,6 +5,7 @@ import React from "react"
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
+import { DangerZone } from '@/components/profile/DangerZone'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -61,7 +62,18 @@ export default function ProfilePage() {
       try {
         const response = await fetch('/api/user/profile')
         if (response.ok) {
-          const data = await response.json()
+          let data: any = null
+          try {
+            data = await response.json()
+          } catch (parseError) {
+            console.error('[v0] Failed to parse profile response as JSON:', parseError)
+          }
+
+          if (!data?.user) {
+            setError('Failed to load profile data')
+            return
+          }
+
           setUser(data.user)
           setFormData({
             name: data.user.name,
@@ -75,8 +87,12 @@ export default function ProfilePage() {
           if (data.user.role === 'Mentor' || data.user.role === 'Both') {
             const feedbackResponse = await fetch(`/api/feedback?mentorId=${data.user._id}`)
             if (feedbackResponse.ok) {
-              const feedbackData = await feedbackResponse.json()
-              setMentorStats(feedbackData)
+              try {
+                const feedbackData = await feedbackResponse.json()
+                setMentorStats(feedbackData)
+              } catch (parseError) {
+                console.error('[v0] Failed to parse feedback response as JSON:', parseError)
+              }
             }
           }
         } else if (response.status === 401) {
@@ -143,14 +159,21 @@ export default function ProfilePage() {
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json()
+      let data: any = null
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('[v0] Failed to parse save profile response as JSON:', parseError)
+      }
 
       if (!response.ok) {
-        setError(data.error || 'Failed to save profile')
+        setError(data?.error || 'Failed to save profile')
         return
       }
 
-      setUser(data.user)
+      if (data?.user) {
+        setUser(data.user)
+      }
       alert('Profile updated successfully!')
     } catch (err) {
       setError('An error occurred. Please try again.')
@@ -397,6 +420,8 @@ export default function ProfilePage() {
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
+
+          <DangerZone />
         </div>
       </main>
     </div>

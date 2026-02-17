@@ -27,6 +27,7 @@ interface MentorshipRequest {
   _id: string
   mentorId: MentorInfo
   status: 'pending' | 'accepted' | 'rejected'
+  subject?: string
   message: string
   createdAt: string
   updatedAt: string
@@ -68,8 +69,13 @@ export default function ChatPage() {
       try {
         const response = await fetch('/api/mentorship-requests/sent')
         if (response.ok) {
-          const data = await response.json()
-          setRequests(data.requests || [])
+          let data: any = null
+          try {
+            data = await response.json()
+          } catch (parseError) {
+            console.error('[v0] Failed to parse sent requests response as JSON:', parseError)
+          }
+          setRequests(data?.requests || [])
         } else if (response.status === 401) {
           router.push('/login')
         }
@@ -95,8 +101,12 @@ export default function ChatPage() {
       try {
         const response = await fetch(`/api/chat?requestId=${selectedRequest._id}`)
         if (response.ok) {
-          const data = await response.json()
-          setMessages(data.messages || [])
+          try {
+            const data = await response.json()
+            setMessages(data.messages || [])
+          } catch (parseError) {
+            console.error('[v0] Failed to parse chat messages as JSON:', parseError)
+          }
         }
       } catch (error) {
         console.error('[v0] Error fetching messages:', error)
@@ -129,8 +139,12 @@ export default function ChatPage() {
         // Fetch updated messages
         const messagesResponse = await fetch(`/api/chat?requestId=${selectedRequest._id}`)
         if (messagesResponse.ok) {
-          const data = await messagesResponse.json()
-          setMessages(data.messages || [])
+          try {
+            const data = await messagesResponse.json()
+            setMessages(data.messages || [])
+          } catch (parseError) {
+            console.error('[v0] Failed to parse updated chat messages as JSON:', parseError)
+          }
         }
       }
     } catch (error) {
@@ -170,8 +184,13 @@ export default function ChatPage() {
           setFeedbackSuccess('')
         }, 2000)
       } else {
-        const data = await response.json()
-        setFeedbackError(data.error || 'Failed to submit feedback')
+        let data: any = null
+        try {
+          data = await response.json()
+        } catch (parseError) {
+          console.error('[v0] Failed to parse feedback error response as JSON:', parseError)
+        }
+        setFeedbackError(data?.error || 'Failed to submit feedback')
       }
     } catch (error) {
       console.error('[v0] Error submitting feedback:', error)
@@ -226,6 +245,9 @@ export default function ChatPage() {
                     >
                       <div className="flex-1">
                         <div className="font-medium text-sm">{request.mentorId.name}</div>
+                        {request.subject && (
+                          <div className="text-xs text-muted-foreground mt-0.5">Subject: {request.subject}</div>
+                        )}
                         <div className="flex items-center gap-2 mt-1">
                           {request.status === 'pending' && (
                             <>
@@ -268,6 +290,9 @@ export default function ChatPage() {
                       />
                       <div>
                         <CardTitle className="text-base">{selectedRequest.mentorId.name}</CardTitle>
+                        {selectedRequest.subject && (
+                          <p className="text-xs font-medium text-foreground mt-0.5">Subject: {selectedRequest.subject}</p>
+                        )}
                         <CardDescription className="text-xs">
                           {selectedRequest.status === 'pending' && 'Awaiting response'}
                           {selectedRequest.status === 'accepted' && 'Connection accepted ✓'}

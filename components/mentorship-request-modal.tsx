@@ -32,15 +32,20 @@ export function MentorshipRequestModal({
   mentorSkills,
 }: MentorshipRequestModalProps) {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   const toggleSkill = (skill: string) => {
+    const isAdding = !selectedSkills.includes(skill)
     setSelectedSkills(prev =>
       prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
     )
+    if (isAdding && !subject.trim()) {
+      setSubject(skill)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +53,12 @@ export function MentorshipRequestModal({
     
     if (selectedSkills.length === 0) {
       setError('Please select at least one skill to learn')
+      return
+    }
+
+    const subjectName = subject.trim() || selectedSkills[0]
+    if (!subjectName) {
+      setError('Please enter a subject or select at least one skill')
       return
     }
 
@@ -60,19 +71,27 @@ export function MentorshipRequestModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mentorId,
+          subject: subjectName,
           message: `Skills I want to learn: ${selectedSkills.join(', ')}. Additional message: ${message}`,
         }),
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to send request')
+        let data: any = null
+        try {
+          data = await response.json()
+        } catch (parseError) {
+          console.error('[v0] Failed to parse mentorship request error response as JSON:', parseError)
+        }
+        const msg = data?.error || 'Failed to send request'
+        throw new Error(msg)
       }
 
       setSuccess(true)
       setTimeout(() => {
         onOpenChange(false)
         setSelectedSkills([])
+        setSubject('')
         setMessage('')
         setSuccess(false)
       }, 2000)
@@ -103,6 +122,19 @@ export function MentorshipRequestModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Subject */}
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-2 block">
+                Subject / Topic *
+              </label>
+              <Input
+                placeholder="e.g. React, Python, Web Development"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
             {/* Skills Selection */}
             <div>
               <label className="text-sm font-semibold text-foreground mb-3 block">

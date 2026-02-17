@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Navigation } from '@/components/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Chrome } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -38,10 +38,15 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json()
+      let data: any = null
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('[v0] Failed to parse login response as JSON:', parseError)
+      }
 
       if (!response.ok) {
-        setError(data.error || 'Login failed')
+        setError(data?.error || 'Login failed')
         return
       }
 
@@ -53,6 +58,11 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleGoogleLogin = () => {
+    // Redirect to Google OAuth flow
+    window.location.href = '/api/auth/google'
   }
 
   return (
@@ -80,7 +90,15 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <Input
                   id="password"
                   name="password"
@@ -97,6 +115,25 @@ export default function LoginPage() {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isLoading ? 'Logging in...' : 'Log In'}
+              </Button>
+
+              <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={handleGoogleLogin}
+              >
+                <Chrome className="h-4 w-4" />
+                Continue with Google
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">

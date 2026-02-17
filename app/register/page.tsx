@@ -87,10 +87,15 @@ export default function RegisterPage() {
         }),
       })
 
-      const data = await response.json()
+      let data: any = null
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('[v0] Failed to parse registration response as JSON:', parseError)
+      }
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed')
+        setError(data?.error || 'Registration failed')
         return
       }
 
