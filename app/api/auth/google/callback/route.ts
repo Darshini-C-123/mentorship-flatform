@@ -1,16 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import { User } from '@/lib/models/User'
-import { generateToken, setAuthCookie } from '@/lib/auth'
+import { generateToken, setAuthCookieOnResponse } from '@/lib/auth'
 
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
+
+function isSafeRedirectPath(path: string | null) {
+  if (!path) return false
+  if (!path.startsWith('/')) return false
+  if (path.startsWith('//')) return false
+  if (path.includes('\n') || path.includes('\r')) return false
+  return true
+}
+
+function decodeState(state: string | null): { redirect?: string } | null {
+  if (!state) return null
+  try {
+    const json = Buffer.from(state, 'base64url').toString('utf8')
+    return JSON.parse(json)
+  } catch {
+    return null
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
     const code = url.searchParams.get('code')
     const error = url.searchParams.get('error')
+    const state = url.searchParams.get('state')
 
     if (error) {
       console.error('[v0] Google OAuth error:', error)
@@ -111,13 +130,15 @@ export async function GET(request: NextRequest) {
     }
 
     const token = generateToken(user._id.toString(), user.email)
-    await setAuthCookie(token)
 
-    // Optional redirect param if you want to support deep linking later
-    const redirectPath = url.searchParams.get('redirect') || '/dashboard'
+    const decodedState = decodeState(state)
+    const redirectCandidate =
+      (typeof decodedState?.redirect === 'string' && decodedState.redirect) || null
+    const redirectPath = isSafeRedirectPath(redirectCandidate) ? redirectCandidate : '/dashboard'
     const redirectUrl = new URL(redirectPath, request.url)
-
-    return NextResponse.redirect(redirectUrl)
+    const response = NextResponse.redirect(redirectUrl)
+    setAuthCookieOnResponse(response, token)
+    return response
   } catch (err) {
     console.error('[v0] Google OAuth callback error:', err)
     return NextResponse.redirect(new URL('/login?error=google_unknown', request.url))

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth'
 import { cookies } from 'next/headers'
 
 // Routes that require authentication
@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
 
   if (isProtectedRoute) {
     const cookieStore = await cookies()
-    const token = cookieStore.get('auth-token')?.value
+    const token = cookieStore.get(AUTH_COOKIE_NAME)?.value
 
     if (!token) {
       // Redirect to login if no token

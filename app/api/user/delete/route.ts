@@ -4,7 +4,7 @@ import { MentorshipRequest } from '@/lib/models/MentorshipRequest'
 import { Message } from '@/lib/models/Message'
 import { Feedback } from '@/lib/models/Feedback'
 import { PasswordResetToken } from '@/lib/models/PasswordResetToken'
-import { getAuthToken, verifyToken, clearAuthCookie } from '@/lib/auth'
+import { getAuthToken, verifyToken, clearAuthCookieOnResponse } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 
@@ -89,11 +89,11 @@ export async function DELETE() {
     // 6) Delete the user
     await User.findByIdAndDelete(objectId)
 
-    await clearAuthCookie()
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'Account deleted successfully.',
     })
+    clearAuthCookieOnResponse(response)
+    return response
   } catch (error) {
     console.error('[delete-account] Error:', error)
     return NextResponse.json(

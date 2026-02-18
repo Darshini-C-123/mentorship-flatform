@@ -1,6 +1,6 @@
 import { connectDB } from '@/lib/db'
 import { User } from '@/lib/models/User'
-import { generateToken, setAuthCookie } from '@/lib/auth'
+import { generateToken, setAuthCookieOnResponse } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -34,9 +34,7 @@ export async function POST(request: NextRequest) {
       }
 
       const token = generateToken(user._id.toString(), user.email)
-      await setAuthCookie(token)
-
-      return NextResponse.json({
+      const response = NextResponse.json({
         message: 'Login successful',
         user: {
           id: user._id,
@@ -45,6 +43,8 @@ export async function POST(request: NextRequest) {
           role: user.role,
         },
       })
+      setAuthCookieOnResponse(response, token)
+      return response
     } catch (dbError: any) {
       console.error('[v0] Database error during login:', dbError?.message || dbError)
       
