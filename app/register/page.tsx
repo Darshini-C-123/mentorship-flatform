@@ -12,6 +12,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Navigation } from '@/components/navigation'
 import { Loader2 } from 'lucide-react'
+import { validatePassword } from '@/lib/password-validation'
+
+const PASSWORD_REQUIREMENTS = 'Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -68,7 +71,14 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      setError('Passwords do not match.')
+      setIsLoading(false)
+      return
+    }
+
+    const passwordCheck = validatePassword(formData.password)
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.error || 'Invalid password.')
       setIsLoading(false)
       return
     }
@@ -155,7 +165,9 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
+                  minLength={8}
                 />
+                <p className="text-xs text-muted-foreground">{PASSWORD_REQUIREMENTS}</p>
               </div>
 
               <div className="space-y-2">

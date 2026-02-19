@@ -1,13 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import { Suspense } from "react"
 import "./globals.css"
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-})
 
 export const metadata: Metadata = {
   title: "MentorHub - Peer-to-Peer Mentorship Platform",
@@ -28,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable} antialiased bg-background text-foreground`}>
+      <body className="font-sans antialiased bg-background text-foreground">
         <Suspense fallback={null}>{children}</Suspense>
       </body>
     </html>

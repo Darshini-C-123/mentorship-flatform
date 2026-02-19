@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X, LogOut, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { NotificationsDropdown } from '@/components/notifications-dropdown'
 
 export function Navigation() {
   const router = useRouter()
@@ -137,6 +138,7 @@ export function Navigation() {
               <span className="text-muted-foreground text-sm">...</span>
             ) : isLoggedIn ? (
               <>
+                <NotificationsDropdown />
                 {userName && (
                   <span className="text-sm text-muted-foreground max-w-[120px] truncate" title={userName}>
                     {userName}
@@ -190,7 +192,12 @@ export function Navigation() {
             <Link href="/profile" className="block px-4 py-2 hover:bg-secondary rounded-lg text-sm" onClick={() => setIsMenuOpen(false)}>
               My Profile
             </Link>
-            <div className="pt-2 space-y-2 px-4">
+            <div className="pt-2 space-y-2 px-4 flex flex-col gap-2">
+              {isLoggedIn && (
+                <div className="flex justify-center">
+                  <NotificationsDropdown />
+                </div>
+              )}
               {isLoggedIn === null ? (
                 <span className="text-muted-foreground text-sm">...</span>
               ) : isLoggedIn ? (

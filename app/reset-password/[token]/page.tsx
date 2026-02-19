@@ -9,6 +9,9 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Navigation } from '@/components/navigation'
 import { Loader2 } from 'lucide-react'
+import { validatePassword } from '@/lib/password-validation'
+
+const PASSWORD_REQUIREMENTS = 'Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -35,8 +38,9 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+    const passwordCheck = validatePassword(password)
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.error || 'Invalid password.')
       return
     }
     if (password !== confirmPassword) {
@@ -146,6 +150,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground">{PASSWORD_REQUIREMENTS}</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm password</Label>

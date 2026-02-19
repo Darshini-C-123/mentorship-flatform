@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -49,6 +49,8 @@ interface FeedbackData {
 
 export default function ChatPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const requestIdFromUrl = searchParams.get('requestId')
   const [requests, setRequests] = useState<MentorshipRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRequest, setSelectedRequest] = useState<MentorshipRequest | null>(null)
@@ -75,7 +77,12 @@ export default function ChatPage() {
           } catch (parseError) {
             console.error('[v0] Failed to parse sent requests response as JSON:', parseError)
           }
-          setRequests(data?.requests || [])
+          const reqs = data?.requests || []
+          setRequests(reqs)
+          if (reqs.length && requestIdFromUrl) {
+            const match = reqs.find((r: MentorshipRequest) => r._id === requestIdFromUrl)
+            if (match) setSelectedRequest(match)
+          }
         } else if (response.status === 401) {
           router.push('/login')
         }
@@ -91,7 +98,7 @@ export default function ChatPage() {
     // Poll for updates every 3 seconds
     const interval = setInterval(fetchRequests, 3000)
     return () => clearInterval(interval)
-  }, [router])
+  }, [router, requestIdFromUrl])
 
   // Fetch messages when request is selected
   useEffect(() => {

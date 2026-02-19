@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db'
 import { User } from '@/lib/models/User'
 import { generateToken, setAuthCookieOnResponse } from '@/lib/auth'
+import { validatePassword } from '@/lib/password-validation'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -13,6 +14,11 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields' },
         { status: 400 }
       )
+    }
+
+    const passwordCheck = validatePassword(password)
+    if (!passwordCheck.valid) {
+      return NextResponse.json({ error: passwordCheck.error }, { status: 400 })
     }
 
     try {

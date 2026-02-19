@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db'
 import { User } from '@/lib/models/User'
+import { validatePassword } from '@/lib/password-validation'
 import { PasswordResetToken } from '@/lib/models/PasswordResetToken'
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
@@ -46,11 +47,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    if (!newPassword || newPassword.length < 8) {
-      return NextResponse.json(
-        { error: 'Password must be at least 8 characters.' },
-        { status: 400 }
-      )
+    const passwordCheck = validatePassword(newPassword)
+    if (!passwordCheck.valid) {
+      return NextResponse.json({ error: passwordCheck.error }, { status: 400 })
     }
 
     await connectDB()
